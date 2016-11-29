@@ -6,8 +6,14 @@ package backtracking;/*
  * implement.
  */
 
+import model.characters.Character;
+import model.SoltrChessModel.*;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
+import static model.SoltrChessModel.CHARACTERS;
 
 /**
  * This class represents the classic recursive backtracking algorithm.
@@ -37,7 +43,7 @@ public class Backtracker {
                     }
                 }
             }
-            // implicit backtracking happens here
+
         } 
         return Optional.empty();
     }
@@ -49,8 +55,22 @@ public class Backtracker {
      *         If there are none, return null.
      */
     public List< Configuration > solveWithPath( Configuration current ) {
-        // YOUR CODE HERE
-        return null;
+        List<Configuration> pathList = new ArrayList<>();
+        if (current.isGoal()){
+            return pathList;
+        } else {
+            if (!this.solve(current).equals(Optional.empty())){
+                for (Configuration c : current.getSuccessors()){
+                    if (!this.solve(c).equals(Optional.empty())){
+                        pathList.add(c);
+                        pathList.addAll(this.solveWithPath(c));
+                        break;
+                    }
+                }
+            }
+        }
+        return pathList;
     }
+
 
 }

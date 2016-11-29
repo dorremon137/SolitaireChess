@@ -2,6 +2,8 @@ import gui.SoltrChessGUI;
 import ptui.SoltrChessPTUI;
 import javafx.application.Application;
 
+import java.io.FileNotFoundException;
+
 /**
  * Here is a class capable of starting up both the GUI and PTUI
  * versions of the game. You are welcome to use it, but you don't
@@ -25,7 +27,7 @@ public class SoltrChess {
      * @param args string array containing [0] "gui" or "ptui";
      *             [1] the game's configuration file
      */
-    public static void main( String[] args ) {
+    public static void main( String[] args ) throws FileNotFoundException {
         UIMode mode = UIMode.huh;
         System.out.println( "Welcome to Solitaire Chess!" );
         String fileName = null;
