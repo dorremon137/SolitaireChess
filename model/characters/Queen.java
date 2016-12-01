@@ -2,6 +2,9 @@ package model.characters;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
+
+import static model.SoltrChessModel.DIMENSION;
 
 /**
  * Created by Mungkorn on 11/22/16.
@@ -67,6 +70,112 @@ public class Queen implements Character {
         }
 
         for (int currentIndex = removeIndexes.size()-1; currentIndex >= 0 ; currentIndex--){
+            int index = removeIndexes.get(currentIndex);
+            possibleList.remove(index);
+        }
+        removeIndexes.clear();
+
+        for (ArrayList<Integer> a : possibleList) {
+            int x = a.get(0);
+            int y = a.get(1);
+            if (!board[x][y].equals("-")) {
+                if (x < this.i && y < this.j && Math.abs(this.i - x) == Math.abs(this.j - y)) {
+                    for (int index = x - 1; index >= 0; index--) {
+                        for (ArrayList<Integer> b : possibleList) {
+                            int nextX = b.get(0);
+                            int nextY = b.get(1);
+                            if (nextX == index && nextY == index) {
+                                removeIndexes.add(possibleList.indexOf(b));
+                            }
+                        }
+                    }
+                } else if (x > this.i && y < this.j && Math.abs(this.i - x) == Math.abs(this.j - y)) {
+                    for (int index = y - 1; index >= 0; index--) {
+                        for (ArrayList<Integer> b : possibleList) {
+                            int nextX = b.get(0);
+                            int nextY = b.get(1);
+                            if (nextX == DIMENSION - 1 - index && nextY == index) {
+                                removeIndexes.add(possibleList.indexOf(b));
+                            }
+                        }
+                    }
+                } else if (x < this.i && y > this.j && Math.abs(this.i - x) == Math.abs(this.j - y)) {
+                    for (int index = y + 1; index <= DIMENSION - 1; index++) {
+                        for (ArrayList<Integer> b : possibleList) {
+                            int nextX = b.get(0);
+                            int nextY = b.get(1);
+                            if (nextX == DIMENSION - 1 - index && nextY == index) {
+                                removeIndexes.add(possibleList.indexOf(b));
+                            }
+                        }
+                    }
+                } else if (x > this.i && y > this.j && Math.abs(this.i - x) == Math.abs(this.j - y)) {
+                    for (int index = x + 1; index <= DIMENSION - 1; index++) {
+                        for (ArrayList<Integer> b : possibleList) {
+                            int nextX = b.get(0);
+                            int nextY = b.get(1);
+                            if (nextX == index && nextY == index) {
+                                removeIndexes.add(possibleList.indexOf(b));
+                            }
+                        }
+                    }
+                } else if (y == this.get_j()) {
+                    if (x - this.i > 0) {
+                        for (int index = DIMENSION - 1 - x; index <= DIMENSION - 1; index++) {
+                            for (ArrayList<Integer> b : possibleList) {
+                                int nextX = b.get(0);
+                                int nextY = b.get(1);
+                                if (nextX > x && nextY == this.get_j()) {
+                                    removeIndexes.add(possibleList.indexOf(b));
+                                }
+                            }
+                        }
+
+                    } else if (x - this.i < 0) {
+                        for (int index = DIMENSION - 1 - x; index >= 0; index--) {
+                            for (ArrayList<Integer> b : possibleList) {
+                                int nextX = b.get(0);
+                                int nextY = b.get(1);
+                                if (nextX < x && nextY == this.get_j()) {
+                                    removeIndexes.add(possibleList.indexOf(b));
+                                }
+                            }
+                        }
+                    }
+                } else if (x == this.get_i()) {
+                    if (y - this.j > 0) {
+                        for (int index = DIMENSION - 1 - y; index <= DIMENSION - 1; index++) {
+                            for (ArrayList<Integer> b : possibleList) {
+                                int nextX = b.get(0);
+                                int nextY = b.get(1);
+                                if (nextY > y && nextX == this.get_i()) {
+                                    removeIndexes.add(possibleList.indexOf(b));
+                                }
+                            }
+                        }
+
+                    } else if (y - this.j < 0) {
+                        for (int index = DIMENSION - 1 - y; index >= 0; index--) {
+                            for (ArrayList<Integer> b : possibleList) {
+                                int nextX = b.get(0);
+                                int nextY = b.get(1);
+                                if (nextY < y && nextX == this.get_i()) {
+                                    removeIndexes.add(possibleList.indexOf(b));
+                                }
+                            }
+                        }
+                    }
+                } else if (board[x][y].equals("-")) {
+                    removeIndexes.add(possibleList.indexOf(a));
+                }
+            }
+        }
+        HashSet<Integer> removeDu = new HashSet<>();
+        removeDu.addAll(removeIndexes);
+        removeIndexes.clear();
+        removeIndexes.addAll(removeDu);
+        removeDu.clear();
+        for (int currentIndex = removeIndexes.size() - 1; currentIndex >= 0; currentIndex--) {
             int index = removeIndexes.get(currentIndex);
             possibleList.remove(index);
         }
