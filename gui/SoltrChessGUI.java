@@ -461,7 +461,7 @@ public class SoltrChessGUI extends Application implements Observer {
         });
 
         newGame.setOnAction(e -> {
-            try {
+            try{
                 FileChooser chooser = new FileChooser();
                 chooser.setTitle("Choose new game");
                 File newDict = new File("./data/");
@@ -477,11 +477,11 @@ public class SoltrChessGUI extends Application implements Observer {
                 stage.setTitle(newFile.getName());
                 model.addObserver(this);
                 update(model, null);
-            } catch (FileNotFoundException e1) {
-                error();
-            } catch (NullPointerException e2) {
+                } catch (FileNotFoundException e1) {
+                    error();
+                }catch(NullPointerException e2){
 
-            }
+                }
         });
         restart.setOnAction(e -> {
             sourceRow = 999;
