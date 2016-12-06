@@ -2,18 +2,18 @@ package ptui;
 
 //import model.*;
 
-import backtracking.Configuration;
 import model.SoltrChessModel;
-import model.characters.*;
 import model.characters.Character;
 
-import static model.SoltrChessModel.CHARACTERS;
+import java.io.FileNotFoundException;
+import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
+import java.util.Scanner;
+
 import static model.SoltrChessModel.DIMENSION;
 
 //import java.io.FileNotFoundException;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.util.*;
 //import java.util.stream.IntStream;
 
 /**
@@ -24,61 +24,64 @@ import java.util.*;
  */
 public class SoltrChessPTUI implements Observer {
 
-    public static SoltrChessModel model;
-    private static int dimension = DIMENSION;
-    private String[][] board;
-    private ArrayList<Character> characters = CHARACTERS;
+    private SoltrChessModel model;
+    // model (observable)
+
     private String gameTitle;
+    // title of the game
+
     private Integer sourceRow;
+    // coordinate of character
+
     private Integer sourceCol;
+    // coordinate of character
+
     private Integer destRow;
+    // coordinate of character
+
     private Integer destCol;
+    // coordinate of character
+
     private Character currentCharacter;
-    private List<Configuration> pathList = new ArrayList<>();
+    // chosen character
 
-    public SoltrChessPTUI( String fileName ) throws FileNotFoundException {
-        this.gameTitle = fileName;
-        this.gameTitle = this.gameTitle.replace("data/", "");
-        this.board = new String[dimension][dimension];
-        Scanner f = new Scanner(new File(fileName));
-        for (int i = 0; i < dimension; i++) {
-            for (int j = 0; j < dimension; j++) {
-                this.board[i][j] = f.next();
-                if (!this.board[i][j].equals("-")) {
-                    switch (this.board[i][j]) {
-                        case "B":
-                            this.characters.add(new Bishop(i,j));
-                            break;
-                        case "K":
-                            this.characters.add(new King(i,j));
-                            break;
-                        case "N":
-                            this.characters.add(new Knight(i,j));
-                            break;
-                        case "P":
-                            this.characters.add(new Pawn(i,j));
-                            break;
-                        case "Q":
-                            this.characters.add(new Queen(i,j));
-                            break;
-                        case "R":
-                            this.characters.add(new Rook(i,j));
-                            break;
-                    }
-                }
-            }
+    private String[][] originalBoard = new String[DIMENSION][DIMENSION];
+    // the original board before changes
+
+    private ArrayList<Character> characters = new ArrayList<>();
+    // character list
+
+    private String fileName;
+    // file name
+
+    /**
+     * Constructor
+     *
+     * @param fileName - game name
+     */
+    public SoltrChessPTUI(String fileName) {
+        this.gameTitle = fileName.replace("data/", "");
+        try {
+            this.model = new SoltrChessModel(fileName);
+        } catch (FileNotFoundException e) {
+            System.out.println("Invalid file");
         }
-        f.close();
-        model = new SoltrChessModel(board);
-        model.addObserver(this);
-
+        this.model.addObserver(this);
+        for (Character c : model.getList()) {
+            this.characters.add(c.copy());
+        }
+        this.fileName = fileName;
+        for (int row = 0; row < DIMENSION; row++) {
+            System.arraycopy(model.getBoard()[row], 0, originalBoard[row], 0, DIMENSION);
+        }
     }
 
 
     // CONTROLLER
     public void run() throws FileNotFoundException {
-        if (CHARACTERS.size() == 1){
-            this.update(this.model,"finished");
+        if (model.getList().size() == 1) {
+            this.update(this.model, null);
+            this.update(this.model, "finished");
         } else {
             this.update(this.model, null);
         }
@@ -91,30 +94,34 @@ public class SoltrChessPTUI implements Observer {
                 if (words[0].startsWith("q")) {
                     break;
                 } else if (words[0].startsWith("r")) {
-                    this.model.restart();
-                } else if (words[0].startsWith("s")) {
-                    pathList = this.model.solve();
-                    if (!pathList.isEmpty()) {
-                        for (int i = 0; i < pathList.size(); i++) {
-                            System.out.println("STEP " + (i + 1));
-                            System.out.println(pathList.get(i));
-                        }
+                    this.model = new SoltrChessModel(fileName);
+                    this.model.addObserver(this);
+                    characters.clear();
+                    for (Character c : model.getList()) {
+                        this.characters.add(c.copy());
                     }
+                    for (int row = 0; row < DIMENSION; row++) {
+                        System.arraycopy(model.getBoard()[row], 0, originalBoard[row], 0, DIMENSION);
+                    }
+                    System.out.println("Restart the game");
+                    this.run();
+
+                } else if (words[0].startsWith("s")) {
+                    this.model.solve(true);
                 } else if (words[0].startsWith("h")) {
-                    this.model.hint();
+                    model.hint();
                 } else if (words[0].startsWith("n")) {
                     String file = "data/";
                     System.out.print("game file name: ");
                     file += in.nextLine();
                     try {
                         SoltrChessPTUI newGame = new SoltrChessPTUI(file);
-                        this.gameTitle = file.replace("data/","");
+                        this.gameTitle = file.replace("data/", "");
                         System.out.println("New Game " + gameTitle);
                         newGame.run();
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
-                    this.model.newG();
                 } else if (words[0].startsWith("m")) {
                     System.out.print("Source row? ");
                     this.sourceRow = Integer.valueOf(in.nextLine());
@@ -124,55 +131,86 @@ public class SoltrChessPTUI implements Observer {
                     this.destRow = Integer.valueOf(in.nextLine());
                     System.out.print("dest col? ");
                     this.destCol = Integer.valueOf(in.nextLine());
-                    for (Character c : characters){
-                        if (c.get_i() == sourceRow && c.get_j() == sourceCol){
+                    for (Character c : model.getList()) {
+                        if (c.get_i() == sourceRow && c.get_j() == sourceCol) {
                             currentCharacter = c;
                             break;
                         }
                     }
-                    model.move(sourceRow,sourceCol,destRow,destCol);
+                    model.move(sourceRow, sourceCol, destRow, destCol);
                 }
             }
         }
 
     }
 
+    /**
+     * update the ui according to the model
+     *
+     * @param o   - model
+     * @param arg - object
+     */
     @Override
-    public void update(Observable o, Object arg) {
-        if (arg != null && arg.toString().equals("moveSuccess")){
+    public synchronized void update(Observable o, Object arg) {
+        if (arg != null && arg.toString().equals("moveSuccess")) {
             System.out.println(currentCharacter.toString() + " to (" + destRow
                     + "," + destCol + ")");
             String boardString = "";
-            for (int i = 0; i < DIMENSION; i++){
+            for (int i = 0; i < DIMENSION; i++) {
                 for (int j = 0; j < DIMENSION; j++) {
-                    boardString += this.board[i][j] + " ";
+                    boardString += this.model.getBoard()[i][j] + " ";
                 }
                 boardString += "\n";
             }
             System.out.print(boardString);
-        } else if (arg != null && arg.toString().equals("noCharAtDest")){
+        } else if (arg != null && arg.toString().equals("steps")) {
+            if (!this.model.getPathList().isEmpty()) {
+                System.out.println("STEP " + (this.characters.size() - model.characterList.size()));
+                String boardString = "";
+                for (int i = 0; i < DIMENSION; i++) {
+                    for (int j = 0; j < DIMENSION; j++) {
+                        boardString += this.model.getBoard()[i][j] + " ";
+                    }
+                    boardString += "\n";
+                }
+                System.out.println(boardString);
+                if (model.characterList.size() == 1) {
+                    System.out.println("You won. Congratulations!");
+                }
+            }
+        } else if (arg != null && arg.toString().equals("noCharAtDest")) {
             System.out.println("Cannot move " + currentCharacter.toString() +
                     " to an empty spot (" + destRow + "," + destCol + ")");
-        } else if (arg != null && arg.toString().equals("noCharAtSource")){
+        } else if (arg != null && arg.toString().equals("noCharAtSource")) {
             System.out.println("Cannot choose character from an empty spot ("
                     + sourceRow + "," + sourceCol + ")");
-        } else if (arg != null && arg.toString().equals("invalidMove")){
+        } else if (arg != null && arg.toString().equals("invalidMove")) {
             System.out.println("Invalid move for " + currentCharacter.toString());
-        } else if (arg == null){
+        } else if (arg != null && arg.toString().equals("notSolvable")) {
+            System.out.println("This game is not solvable, no solution");
+        } else if (arg != null && arg.toString().equals("InvalidFormat")) {
+            System.out.println("Invalid board format");
+        } else if (arg != null && arg.toString().equals("hint")) {
             String boardString = "";
-            for (int i = 0; i < DIMENSION; i++){
+            for (int i = 0; i < DIMENSION; i++) {
                 for (int j = 0; j < DIMENSION; j++) {
-                    boardString += this.board[i][j] + " ";
+                    boardString += this.model.getBoard()[i][j] + " ";
+                }
+                boardString += "\n";
+            }
+            System.out.print(boardString);
+        } else if (arg == null) {
+            String boardString = "";
+            for (int i = 0; i < DIMENSION; i++) {
+                for (int j = 0; j < DIMENSION; j++) {
+                    boardString += this.model.getBoard()[i][j] + " ";
                 }
                 boardString += "\n";
             }
             System.out.print(boardString);
         }
-        if (arg != null && arg.toString().equals("finished")){
+        if (arg != null && arg.toString().equals("finished")) {
             System.out.println("You won. Congratulations!");
         }
     }
-
-
-    // VIEW
 }

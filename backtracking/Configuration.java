@@ -1,5 +1,8 @@
 package backtracking;
 
+import model.characters.Character;
+
+import java.util.ArrayList;
 import java.util.Collection;
 
 /**
@@ -16,7 +19,7 @@ public interface Configuration {
      *
      * @return All successors, valid and invalid
      */
-    public Collection< Configuration > getSuccessors();
+    public Collection<Configuration> getSuccessors();
 
     /**
      * Is the current configuration valid or not?
@@ -27,7 +30,12 @@ public interface Configuration {
 
     /**
      * Is the current configuration a goal?
+     *
      * @return true if goal; false otherwise
      */
     public boolean isGoal();
+
+    public String[][] getBoard();
+
+    public ArrayList<Character> getList();
 }

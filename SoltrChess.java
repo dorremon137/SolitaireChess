@@ -1,6 +1,6 @@
 import gui.SoltrChessGUI;
-import ptui.SoltrChessPTUI;
 import javafx.application.Application;
+import ptui.SoltrChessPTUI;
 
 import java.io.FileNotFoundException;
 
@@ -8,36 +8,37 @@ import java.io.FileNotFoundException;
  * Here is a class capable of starting up both the GUI and PTUI
  * versions of the game. You are welcome to use it, but you don't
  * have to.
+ *
  * @author James Heliotis
  *         November 2015
  */
 public class SoltrChess {
     public static final int CMD_LINE_ERROR = 1;
 
-    enum UIMode { huh, gui, ptui }
+    enum UIMode {huh, gui, ptui}
 
     private static void usage() {
         System.err.println(
-                "Usage: java SoltrChess ( gui | ptui ) config-file" );
-        System.exit( CMD_LINE_ERROR );
+                "Usage: java SoltrChess ( gui | ptui ) config-file");
+        System.exit(CMD_LINE_ERROR);
     }
 
     /**
      * Start up a Chess Solitaire game in a terminal window or GUI.
+     *
      * @param args string array containing [0] "gui" or "ptui";
      *             [1] the game's configuration file
      */
-    public static void main( String[] args ) throws FileNotFoundException {
+    public static void main(String[] args) throws FileNotFoundException {
         UIMode mode = UIMode.huh;
-        System.out.println( "Welcome to Solitaire Chess!" );
+        System.out.println("Welcome to Solitaire Chess!");
         String fileName = null;
-        switch ( args.length ) {
+        switch (args.length) {
             case 2:
-                fileName = args[ 1 ];
+                fileName = args[1];
                 try {
-                    mode = UIMode.valueOf( args[ 0 ] );
-                }
-                catch( IllegalArgumentException badEnumString ) {
+                    mode = UIMode.valueOf(args[0]);
+                } catch (IllegalArgumentException badEnumString) {
                     usage();
                 }
                 break;
@@ -56,12 +57,12 @@ public class SoltrChess {
         //
         // SoltrChessGUI and SoltrChessPTUI implement Observer.update()
         //
-        switch( mode ) {
+        switch (mode) {
             case gui:
-                Application.launch( SoltrChessGUI.class, fileName );
+                Application.launch(SoltrChessGUI.class, fileName);
                 break;
             case ptui:
-                SoltrChessPTUI ui = new SoltrChessPTUI( fileName );
+                SoltrChessPTUI ui = new SoltrChessPTUI(fileName);
                 ui.run();
                 break;
             default:
